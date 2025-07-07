@@ -105,7 +105,7 @@ if __name__ == '__main__':
     timestamp_str = time.strftime("%Y_%m_%d_%H_%M", time.gmtime())
     filename = file_path+f"mag_{timestamp_str}.csv"
     
-    channels = [0, 1, 4]             # channels to record
+    channels = [0]             # channels to record only 0 for shortcircuit!!
     scan_rate = args.scanrate
     t_measure = args.time
 

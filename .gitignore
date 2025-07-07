@@ -9,3 +9,4 @@ daqhats/.git
 .ipynb_checkpoints/
 .env/
 .__pycache__/
+acquisitions/

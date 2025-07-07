@@ -18,10 +18,16 @@ def load_hdf5(pathh5):
     f = h5py.File(pathh5,'r')
     data = f['voltage']
     dset = {}
-    # channel order 0, 1, 4
-    dset['x'] = data[:,0] * 1000. / 143.
-    dset['y'] = data[:,2] * 1000. / 143.
-    dset['z'] = data[:,1] * 1000. / 143.
+
+    if data.ndim == 1 or data.shape[1] == 1:
+        # Single-channel case
+        dset['x'] = data.flatten()
+    else:
+        # Multi-channel case, assuming channel order 0, 1, 4 -> x, z, y
+        dset['x'] = data[:, 0]
+        dset['y'] = data[:, 2]
+        dset['z'] = data[:, 1]   
+
     dset['sample_rate'] = data.attrs['sample_rate']
     dset['measure_time'] = data.attrs['measure_time']
     dset['end_time'] = data.attrs['end_time']
@@ -29,17 +35,20 @@ def load_hdf5(pathh5):
     return dset
 
 def load_csv_pl(pathcsv):
-    '''
-    load csv magnetometer result and convert into magnetic field value in μT, using polars to accelerate.
-    '''
     df = pl.read_csv(pathcsv)
     data = df.to_numpy()
     data = data * 1000. / 143.
-    # channel order 0, 1, 4
+
     dset = {}
-    dset['x'] = data[:,0]
-    dset['y'] = data[:,2]
-    dset['z'] = data[:,1]
+
+    if data.ndim == 1 or data.shape[1] == 1:
+        # Single-channel case
+        dset['x'] = data.flatten()
+    else:
+        # Multi-channel case, assuming channel order 0, 1, 4 -> x, z, y
+        dset['x'] = data[:, 0]
+        dset['y'] = data[:, 2]
+        dset['z'] = data[:, 1]
 
     return dset
     
@@ -50,10 +59,14 @@ def load_csv(pathcsv):
     data = np.genfromtxt(pathcsv,delimiter=',')
     data = data * 1000. / 143.
     dset = {}
-    # channel order 0, 1, 4
-    dset['x'] = data[:,0]
-    dset['y'] = data[:,2]
-    dset['z'] = data[:,1]
+    if data.ndim == 1 or data.shape[1] == 1:
+        # Single-channel case
+        dset['x'] = data.flatten()
+    else:
+        # Multi-channel case, assuming channel order 0, 1, 4 -> x, z, y
+        dset['x'] = data[:, 0]
+        dset['y'] = data[:, 2]
+        dset['z'] = data[:, 1]
     
     return dset
 
@@ -194,7 +207,7 @@ def compute_averaged_psd(chs,fs,Lbin:int,overlapratio:float=0.5,nodc=True):
 # PLotting
 #################################################
 
-def plot_sample_ps(path,fs=1000.,ax=None,label=None,orientation=['x','y','z']):
+def plot_sample_ps(path,fs=1000.,ax=None,label=None,orientation=['x','y','z'],alpha=0.6):
     
     if path.endswith('.hdf5'):
         print('->loading hdf5...',end='\r')
@@ -211,21 +224,16 @@ def plot_sample_ps(path,fs=1000.,ax=None,label=None,orientation=['x','y','z']):
     else:
         fig=None
         
-    if len(orientation)>1:
-        alpha = 0.6
-    else:
-        alpha = 1.0
-        
     for vec in orientation:
         print('->plotting direction '+vec,end='\r')
         data = dset[vec]
         f,ps = compute_ps(data,fs)
-        ax.loglog(f,np.sqrt(ps),label=vec,alpha=alpha)
+        ax.loglog(f,np.sqrt(ps),label=label+vec,alpha=alpha)
         
     print('plot complete '+path[-20:-4]+'.')
     return fig,ax
 
-def plot_sample_psd(path,fs=1000.,ax=None,label=None,orientation=['x','y','z'],Lbin=None,overlap=0.5):
+def plot_sample_psd(path,fs=1000.,ax=None,label=None,orientation=['x','y','z'],Lbin=None,overlap=0.5,alpha=0.6):
     print('plot sample '+path+':')
     
     if path.endswith('.hdf5'):
@@ -247,11 +255,6 @@ def plot_sample_psd(path,fs=1000.,ax=None,label=None,orientation=['x','y','z'],L
         ax.set_ylabel('LSD[$\mu T/ \sqrt{Hz}$]')
     else:
         fig=None
-    
-    if len(orientation)>1:
-        alpha = 0.6
-    else:
-        alpha = 1.0
     
     for vec in orientation:
         print('->plotting direction '+vec,end='\r')
