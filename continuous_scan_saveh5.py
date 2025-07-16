@@ -15,10 +15,11 @@ parser = argparse.ArgumentParser(
 parser.add_argument('savedir',type=str)
 parser.add_argument('-t', '--time', help='record time (seconds)',type=float, default=10.0)
 parser.add_argument('-s', '--scanrate', help='scan rate (S/second)',type=float,default=1000.0)
+parser.add_argument('-d', '--dtype', help='data type: int/float. If float, data is calibrated; if int, data is raw daq code and not calibrated.',type=str,default='float')
 
 READ_ALL_AVAILABLE = -1
 
-def continuous_scan_givedata(channels, scan_rate, t_measure):
+def continuous_scan_givedata(channels, scan_rate, t_measure, dtype):
     """
     Perform continuous acquisition for t_measure seconds, return acquired data.
     
@@ -35,7 +36,12 @@ def continuous_scan_givedata(channels, scan_rate, t_measure):
     input_mode = AnalogInputMode.SE
     input_range = AnalogInputRange.BIP_10V
     samples_per_channel = 0
+
     options = OptionFlags.CONTINUOUS
+    if dtype =='float':
+        options = OptionFlags.CONTINUOUS
+    elif dtype =='int':
+        options = OptionFlags.CONTINUOUS | OptionFlags.NOCALIBRATEDATA | OptionFlags.NOSCALEDATA # uncalibrated unscaled data
 
     try:
         address = select_hat_device(HatIDs.MCC_128)
@@ -66,6 +72,9 @@ def continuous_scan_givedata(channels, scan_rate, t_measure):
                 break
 
             data_pack = np.array(read_result.data)
+            if dtype == 'int':
+                data_pack = data_pack.astype(np.int16)
+            
             samples_read_per_channel = int(len(data_pack) / num_channels)
             
             # Reshape into (samples_read_per_channel, num_channels)
@@ -92,12 +101,12 @@ def continuous_scan_givedata(channels, scan_rate, t_measure):
         print("\n", err)
         return None
 
-
 if __name__ == '__main__':
     # Example usage:
     
     args = parser.parse_args()
     file_path = args.savedir
+    dtype = args.savedir
     channels = [0, 1, 4]
     scan_rate = args.scanrate
     t_measure = args.time
@@ -105,13 +114,14 @@ if __name__ == '__main__':
     if not os.path.exists(file_path):
         os.makedirs(file_path)
     
-    timestamp_str = time.strftime("%Y_%m_%d_%H_%M", time.gmtime())
+    timestamp_str = time.strftime("%Y_%m_%d_%H_%M", time.localtime())
     filename = file_path+f"mag_{timestamp_str}.hdf5"
 
-    data_arr = continuous_scan_givedata(channels, scan_rate, t_measure)
+    data_arr = continuous_scan_givedata(channels, scan_rate, t_measure, dtype)
 
     with h5py.File(filename, "w") as f:
         dset = f.create_dataset("voltage", data=data_arr)
+        dset.attrs['dtype'] = dtype
         dset.attrs['sample_rate'] = scan_rate
         dset.attrs['end_time'] = timestamp_str
         dset.attrs['measure_time'] = t_measure

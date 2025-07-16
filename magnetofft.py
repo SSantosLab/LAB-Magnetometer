@@ -5,11 +5,65 @@ import h5py
 from scipy.signal import ShortTimeFFT
 from scipy.signal.windows import gaussian
 import polars as pl
+import pandas as pd
+
+#################################################
+# Reading environmental logs
+#################################################
+
+def load_monitorpi_csv(filepath):
+    df = pd.read_csv(filepath)
+    # Convert 'localtime' from string to datetime
+    df["timestamp"] = pd.to_datetime(df["localtime"], format="%Y_%m_%d_%H_%M")
+    return df
+
+def plot_monitorpi_data(df):
+    time = df["timestamp"]
+    columns_to_plot = [
+        ("extvolt(V)", "External Voltage (V)"),
+        ("cputemp(C)", "CPU Temperature (°C)"),
+        ("envtemperature(C)", "Environment Temperature (°C)"),
+        ("envhumidity(%)", "Environment Humidity (%)"),
+        ("envpressure(hPa)", "Environment Pressure (hPa)")
+    ]
+
+    num_plots = len(columns_to_plot)
+    fig, axs = plt.subplots(num_plots, 1, figsize=(12, 2.5 * num_plots), sharex=True)
+    
+    for ax, (col, label) in zip(axs, columns_to_plot):
+        ax.plot(time, df[col], marker="o", linestyle="-")
+        ax.set_ylabel(label)
+        ax.grid(True)
+
+    axs[-1].set_xlabel("Time")
+    fig.suptitle("Raspberry Pi Sensor Readings Over Time", fontsize=14)
+    fig.tight_layout(rect=[0, 0, 1, 0.97])
+    plt.xticks(rotation=45)
+    plt.show()
+
+def plot_monitorpi_fromcsv(filepath):
+    df = load_monitorpi_csv(filepath)
+    plot_monitorpi_data(df)
 
 #################################################
 # Loading data
 #################################################
 plt.rcParams.update({'font.size': 14})
+
+SLOPE=1.0083421207668117
+OFFSET=-295.30861087311496
+
+def calibrate_data(dataraw):
+    data = np.zeros_like(dataraw,dtype=float)
+    if dataraw.dtype == np.uint16:
+        # calibrate only int16 data
+        data = (dataraw * SLOPE) + OFFSET
+        # convert into voltage
+        data = ( data / 65536.0 ) * 20.0 -10.0
+    else:
+        data = dataraw
+        print("No calibration, assuming data is calibrated.")
+    return data
 
 def load_hdf5(pathh5):
     '''
@@ -18,6 +72,15 @@ def load_hdf5(pathh5):
     f = h5py.File(pathh5,'r')
     data = f['voltage']
     dset = {}
+    
+    dset['sample_rate'] = data.attrs['sample_rate']
+    dset['measure_time'] = data.attrs['measure_time']
+    dset['end_time'] = data.attrs['end_time']
+    
+    data = np.array(data)
+    data = calibrate_data(data)
+    data = data * 1000./143
+    
 
     if data.ndim == 1 or data.shape[1] == 1:
         # Single-channel case
@@ -28,15 +91,12 @@ def load_hdf5(pathh5):
         dset['y'] = data[:, 2]
         dset['z'] = data[:, 1]   
 
-    dset['sample_rate'] = data.attrs['sample_rate']
-    dset['measure_time'] = data.attrs['measure_time']
-    dset['end_time'] = data.attrs['end_time']
-
     return dset
 
 def load_csv_pl(pathcsv):
     df = pl.read_csv(pathcsv)
     data = df.to_numpy()
+    data = calibrate_data(data)
     data = data * 1000. / 143.
 
     dset = {}
@@ -57,6 +117,7 @@ def load_csv(pathcsv):
     load csv magnetometer result and convert into magnetic field value in μT
     '''
     data = np.genfromtxt(pathcsv,delimiter=',')
+    data = calibrate_data(data)
     data = data * 1000. / 143.
     dset = {}
     if data.ndim == 1 or data.shape[1] == 1:

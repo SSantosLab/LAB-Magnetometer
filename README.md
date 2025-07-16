@@ -19,5 +19,8 @@ Other required libraries for spectral analysis include:
 - `continuous_scan_saveh5.py` saves with hdf5 only. The acquisition length should **not exceed the memory limit** of the raspberry-pi.
 - `continuous_scan_savecsv.py` saves line by line the readout. Has low memory usage and *can handle longer durations*.
 
+## Temperature and Humidity scan
+- `temphumid.py` scans temperature humidity and air pressure every 2 seconds and print in terminal.
+
 ## Spectral Analysis
 - `magnetofft.py` uses fft to compute fft amplitude. New version of `magnetofft.py` contain Power Spectrum (PS) and Power Spectral Density (PSD) calculation from [FFT_report](https://holometer.fnal.gov/GH_FFT.pdf). Also contains plotting routines for PS and PSD.

@@ -102,7 +102,7 @@ if __name__ == '__main__':
     if not os.path.exists(file_path):
         os.makedirs(file_path)
     
-    timestamp_str = time.strftime("%Y_%m_%d_%H_%M", time.gmtime())
+    timestamp_str = time.strftime("%Y_%m_%d_%H_%M", time.localtime())
     filename = file_path+f"mag_{timestamp_str}.csv"
     
     channels = [0]             # channels to record only 0 for shortcircuit!!
