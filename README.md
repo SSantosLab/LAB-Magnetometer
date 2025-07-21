@@ -24,11 +24,14 @@ screen -S <session_name>
 cd gdzhao
 source .env/bin/activate
 ```
+
 3. Start Acquisition (each in individual screen sessions):
 
 Monitor raspberry-pi health using `python monitorpi.py -s <scan_rate> <save_dir>`. A recommendation is `-s 0.5` use default. Saves in save_dir/logs/ directory.
 
 Scan magnetometer using `python scan_save_rawh5_fault_tolerant.py -s <scan_rate> -t <t_measure> <save_dir>`.
+
+4. **QuickStart** for watchdog session. `python watchacq.py` directly starts an acquisition `scan_save_rawh5_fault_tolerant.py` with 20kHz and 100 days in a separate screen session. This script will watch the running status of the acquisition script and attempt to restart the screen session and the script once error occurs.
 
 ## Scan to binary files
 - `scan_save_rawh5.py` saves one hdf5 file with continuous writing. Data is raw adc code without calibration in uint 16 format.

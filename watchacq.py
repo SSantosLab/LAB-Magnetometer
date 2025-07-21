@@ -5,7 +5,7 @@ import os
 # === CONFIGURATION ===
 SCRIPT_NAME = "scan_save_rawh5_fault_tolerant.py"
 SCRIPT_PATH = "/home/gw-group/gdzhao/scan_save_rawh5_fault_tolerant.py"
-SAVE_DIR = "/home/gw-group/gdzhao/acquisitions/"
+SAVE_DIR = "/home/gw-group/gdzhao/acquisitions/20250722_Bedretto/"
 DURATION = "8640000" # 100 days by default
 SAMPLERATE = "20000"
 SCREEN_SESSION = "daq_session"
