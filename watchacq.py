@@ -6,7 +6,7 @@ import os
 SCRIPT_NAME = "scan_save_rawh5_fault_tolerant.py"
 SCRIPT_PATH = "/home/gw-group/gdzhao/scan_save_rawh5_fault_tolerant.py"
 SAVE_DIR = "/home/gw-group/gdzhao/acquisitions/"
-DURATION = "864000" # 10 days by default
+DURATION = "8640000" # 100 days by default
 SAMPLERATE = "20000"
 SCREEN_SESSION = "daq_session"
 
@@ -28,9 +28,9 @@ def is_screen_running():
 
 def start_script():
     """Start the acquisition script in a detached screen session."""
-    print("Starting DAQ script...")
     cmd = f"python3 {SCRIPT_PATH} -t {DURATION} -s {SAMPLERATE} {SAVE_DIR}"
     subprocess.call(["screen", "-dmS", SCREEN_SESSION, "bash", "-c", cmd])
+    print("New DAQ script started.")
 
 if __name__ == "__main__":
     while True:
@@ -41,5 +41,5 @@ if __name__ == "__main__":
                 subprocess.call(["screen", "-S", SCREEN_SESSION, "-X", "quit"])
             start_script()
         else:
-            print("DAQ script is running.")
+            print("DAQ script is running.",end='\r')
         time.sleep(60)  # check every minute
