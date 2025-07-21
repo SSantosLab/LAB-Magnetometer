@@ -5,6 +5,14 @@ import argparse
 import os
 import csv
 import subprocess
+import psutil
+
+def read_mem_usage():
+    try:
+        mempercent = psutil.virtual_memory().percent
+        return mempercent
+    except:
+        return None
 
 def read_voltage(channel="EXT5V_V"):
     try:
@@ -32,7 +40,7 @@ def main():
     
     parser.add_argument('savedir',type=str)
     parser.add_argument('-t', '--time', help='record time (seconds), if not passed, do continuous mode.',type=float, default=None)
-    parser.add_argument('-s', '--scanrate', help='scan rate (S/min), default 1S/min',type=float,default=1)
+    parser.add_argument('-s', '--scanrate', help='scan rate (S/min), default 1S/min',type=float,default=0.5)
     
     args = parser.parse_args()
     file_path = args.savedir + 'logs/'
@@ -64,7 +72,7 @@ def main():
     try:
         with open(filename, mode='w', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(['localtime', 'extvolt(V)', 'cputemp(C)', 'envtemperature(C)', 'envhumidity(%)', 'envpressure(hPa)'])
+            writer.writerow(['localtime', 'extvolt(V)', 'cputemp(C)', 'envtemperature(C)', 'envhumidity(%)', 'envpressure(hPa)','mempercent(%)'])
             while True:
                 if t_measure is not None and (time.time() - time_start) >= t_measure:
                     break
@@ -75,8 +83,9 @@ def main():
                 temperature = bme680.temperature
                 humidity = bme680.relative_humidity
                 pressure = bme680.pressure
+                mempercent = read_mem_usage()
     
-                writer.writerow([timestamp_str, extvolt, cputemp, temperature, humidity, pressure])
+                writer.writerow([timestamp_str, extvolt, cputemp, temperature, humidity, pressure, mempercent])
                 csvfile.flush()
                 time.sleep(interval)
     
