@@ -29,7 +29,7 @@ def is_screen_running():
 
 def start_script(savedir,tmeasure,samplerate):
     """Start the acquisition script in a detached screen session."""
-    cmd = f"python3 {SCRIPT_PATH} -t {tmeasure} -s {samplerate} {savedir}"
+    cmd = f"python3 -u {SCRIPT_PATH} -t {tmeasure} -s {samplerate} {savedir} 2>&1 | tee -a {savedir}/logs/daq_stdout.log"
     subprocess.call(["screen", "-dmS", SCREEN_SESSION, "bash", "-c", cmd])
     print("New DAQ script started.")
 
