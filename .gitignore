@@ -10,3 +10,4 @@ daqhats/.git
 .env/
 .__pycache__/
 acquisitions/
+results/
