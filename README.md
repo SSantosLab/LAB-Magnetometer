@@ -44,3 +44,6 @@ Scan magnetometer using `python scan_save_rawh5_fault_tolerant.py -s <scan_rate>
 
 ## Spectral Analysis
 - `magnetofft.py` uses fft to compute fft amplitude. New version of `magnetofft.py` contain Power Spectrum (PS) and Power Spectral Density (PSD) calculation from [FFT_report](https://holometer.fnal.gov/GH_FFT.pdf). Also contains plotting routines for PS and PSD.
+
+## Batch Processing
+- `pspsdbatch.py` computes and stores 1-hour ps-psd results, have options to save either each segment or the mean of each hour.
