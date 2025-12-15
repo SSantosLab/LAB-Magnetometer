@@ -48,8 +48,8 @@ def file_name_extract(filedir,outdir,filehead=None):
 #             plot_single_psd(filepath,outpath,sample_rate=20000.0)
 
 def main():
-    filedir = '/data/atom-interferometer/2025_MagneticBackground/20250728_BedrettoCampaing/20250722_initialtest/'
-    outdir = 'results/20250722_initialtest/psd/'
+    filedir = '/data/atom-interferometer/2025_MagneticBackground/20250728_BedrettoCampaing/20250722_zerogauss/'
+    outdir = 'results/20250722_zerogauss/psd_avg/'
     corrupted_files_list = [
         '/data/atom-interferometer/2025_MagneticBackground/20250728_BedrettoCampaing/20250729_MagneticField/mag_2025_08_14_11_21_part0.hdf5',
         '/data/atom-interferometer/2025_MagneticBackground/20250728_BedrettoCampaing/20250729_MagneticField/mag_2025_08_07_18_18_part136.hdf5',
@@ -67,14 +67,14 @@ def main():
             # corrupted file at powerdown
         else:
             print(filepath)
-            save_windowed_ps_psd_hdf5(
+            save_averaged_ps_psd_hdf5(
                 h5_in= filepath,
                 out_dir = outdir,
                 channels=('x','y','z'),
                 Lbin = None,
                 overlap = 0.5,
                 nodc = True,
-                fmax = 1e2,
+                fmax = None,
                 fmin = 1e-2
             )
 
