@@ -66,7 +66,7 @@ def register_signal_handlers():
 
 def continuous_scan_with_rotation(channels, scan_rate, total_time, savedir, prefix, chunksize=DEFAULT_CHUNKSIZE):
     """
-    Continuous acquisition with hourly HDF5 rotation, SWMR mode,
+    Continuous acquisition with hourly HDF5 rotation,
     and immediate flush+fsync for crash resilience.
 
     Args:
@@ -104,7 +104,7 @@ def continuous_scan_with_rotation(channels, scan_rate, total_time, savedir, pref
 
     def open_new_file(idx):
         filename = os.path.join(savedir, f"{prefix}_part{idx}.hdf5")
-        f = h5py.File(filename, "w", libver="latest", swmr=True)
+        f = h5py.File(filename, "w", libver="latest")
         f.swmr_mode = True
         dset = f.create_dataset(
             "voltage", shape=(0, num_channels), maxshape=(None, num_channels),
@@ -134,10 +134,10 @@ def continuous_scan_with_rotation(channels, scan_rate, total_time, savedir, pref
             # Read raw data
             result = hat.a_in_scan_read(READ_ALL_AVAILABLE, timeout=5.0)
             if result.hardware_overrun:
-                print("\nHardware overrun!")
+                print("\nHardware overrun! time at"+time.strftime("%Y_%m_%d_%H_%M", time.localtime()))
                 break
             if result.buffer_overrun:
-                print("\nBuffer overrun!")
+                print("\nBuffer overrun! time at"+time.strftime("%Y_%m_%d_%H_%M", time.localtime()))
                 break
 
             block = np.array(result.data, dtype=np.uint16)
